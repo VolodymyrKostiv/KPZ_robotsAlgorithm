@@ -19,6 +19,10 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
 
         public IEnumerable<Robot.Common.Robot> CheckTerritoryNearStation(EnergyStation station, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot)
         {
+            _ = station ?? throw new ArgumentNullException(nameof(station));
+            _ = robots ?? throw new ArgumentNullException(nameof(robots));
+            _ = currentRobot ?? throw new ArgumentNullException(nameof(currentRobot));
+
             List<Robot.Common.Robot> robotsOnStation = new List<Robot.Common.Robot>();
 
             //for (int y = station.Position.Y - maxDistanceToCollect; y >= station.Position.Y + maxDistanceToCollect; ++y)
@@ -67,6 +71,10 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
 
         public EnergyStation FindNearestFreeStation(Map map, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot)
         {
+            _ = map ?? throw new ArgumentNullException(nameof(map));
+            _ = robots ?? throw new ArgumentNullException(nameof(robots));
+            _ = currentRobot ?? throw new ArgumentNullException(nameof(currentRobot));
+
             List<EnergyStation> occupiedStations = new List<EnergyStation>();
             for (int distanceCounter = 1; distanceCounter < 100; ++distanceCounter)
             {
@@ -93,6 +101,11 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
 
         public EnergyStation FindNearestStation(Map map, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot)
         {
+            _ = map ?? throw new ArgumentNullException(nameof(map));
+            _ = robots ?? throw new ArgumentNullException(nameof(robots));
+            _ = currentRobot ?? throw new ArgumentNullException(nameof(currentRobot));
+
+
             for (int distanceCounter = 1; distanceCounter < 100; ++distanceCounter)
             {
                 IEnumerable<EnergyStation> nearbyStations = map.GetNearbyResources(currentRobot.Position, distanceCounter);
