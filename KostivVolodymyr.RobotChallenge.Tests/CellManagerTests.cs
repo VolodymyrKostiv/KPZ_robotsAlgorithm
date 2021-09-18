@@ -243,7 +243,6 @@ namespace KostivVolodymyr.RobotChallenge.Tests
             Assert.IsFalse(result);
         }
 
-
         private static IEnumerable<Robot.Common.Robot> GetTestRobotsForOcupation()
         {
             return new List<Robot.Common.Robot>

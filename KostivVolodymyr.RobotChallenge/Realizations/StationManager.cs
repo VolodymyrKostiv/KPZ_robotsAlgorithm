@@ -25,14 +25,6 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
 
             List<Robot.Common.Robot> robotsOnStation = new List<Robot.Common.Robot>();
 
-            //for (int y = station.Position.Y - maxDistanceToCollect; y >= station.Position.Y + maxDistanceToCollect; ++y)
-            //{
-            //    for(int x = station.Position.X - maxDistanceToCollect; x >= station.Position.Y + maxDistanceToCollect; ++x)
-            //    {
-            //        if(!_cellManager.CellIsFree(new Position, ))
-            //    }
-            //}
-
             //Check above triangle
             for (int y = station.Position.Y + maxDistanceToCollect, count = 0; y > station.Position.Y; --y, ++count)
             {
@@ -87,9 +79,7 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
                 IEnumerable<EnergyStation> orderedNearestStations = nearbyStations.Distinct<EnergyStation>().OrderBy(p => _cellManager.CalculateDistanceBetweenCells(currentRobot.Position, p.Position));
                 foreach (EnergyStation station in orderedNearestStations)
                 {
-                    if (StationIsFree(station, robots, currentRobot) 
-                        || (StationIsOccupiedByEnemy(station, robots, currentRobot)
-                        && !StationIsOccupiedByMe(station, robots, currentRobot)))
+                    if (StationIsFree(station, robots, currentRobot))
                     {
                         return station;
                     }
@@ -118,6 +108,109 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
                 return nearestStation;
             }
             return null;
+        }
+
+        public EnergyStation FindFreeStation(Map map, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot)
+        {
+            _ = map ?? throw new ArgumentNullException(nameof(map));
+            _ = robots ?? throw new ArgumentNullException(nameof(robots));
+            _ = currentRobot ?? throw new ArgumentNullException(nameof(currentRobot));
+
+            EnergyStation nearest = null;
+            int minDistance = int.MaxValue;
+            foreach (var station in map.Stations)
+            {
+                if (_cellManager.CellIsFree(station.Position, robots, currentRobot, out Robot.Common.Robot _))
+                {
+                    int d = _cellManager.CalculateDistanceBetweenCells(station.Position, currentRobot.Position);
+                    if (d < minDistance)
+                    {
+                        minDistance = d;
+                        nearest = station;
+                    }
+                }
+            }
+            return nearest;
+        }
+
+        public EnergyStation FindNonTargetedFreeStation(Map map, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot, Dictionary<Robot.Common.Robot, EnergyStation> robotsWithTargets)
+        {
+            _ = map ?? throw new ArgumentNullException(nameof(map));
+            _ = robots ?? throw new ArgumentNullException(nameof(robots));
+            _ = currentRobot ?? throw new ArgumentNullException(nameof(currentRobot));
+            _ = robotsWithTargets ?? throw new ArgumentNullException(nameof(robotsWithTargets));
+
+            List<EnergyStation> occupiedStations = new List<EnergyStation>();
+            for (int distanceCounter = 1; distanceCounter < 100; ++distanceCounter)
+            {
+                IEnumerable<EnergyStation> nearbyStations = map.GetNearbyResources(currentRobot.Position, distanceCounter);
+                if (nearbyStations.Count() <= 0)
+                {
+                    continue;
+                }
+
+                IEnumerable<EnergyStation> orderedNearestStations = nearbyStations.Distinct<EnergyStation>().OrderBy(p => _cellManager.CalculateDistanceBetweenCells(currentRobot.Position, p.Position));
+                foreach (EnergyStation station in orderedNearestStations)
+                {
+                    if (StationIsFree(station, robots, currentRobot) && !robotsWithTargets.ContainsValue(station))
+                    {
+                        return station;
+                    }
+                }
+                occupiedStations.Concat<EnergyStation>(orderedNearestStations);
+            }
+            return null;
+        }
+
+        public Position FindBestPositionNearStation(EnergyStation station, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot)
+        {
+            Position bestPosition = new Position(station.Position.X, station.Position.Y);
+            int minDistance = _cellManager.CalculateDistanceBetweenCells(station.Position, currentRobot.Position);
+            int distanceToCell;
+
+            //Check above triangle
+            for (int y = station.Position.Y + maxDistanceToCollect, count = 0; y > station.Position.Y; --y, ++count)
+            {
+                for (int x = station.Position.X - count; x <= station.Position.X + count; ++x)
+                {
+                    distanceToCell = _cellManager.CalculateDistanceBetweenCells(new Position(x, y), currentRobot.Position);
+                    if (distanceToCell < minDistance)
+                    {
+                        minDistance = distanceToCell;
+                        bestPosition.X = x;
+                        bestPosition.Y = y;
+                    }
+                }
+            }
+
+            //Check station X Line
+            for (int x = station.Position.X - maxDistanceToCollect; x <= station.Position.X + maxDistanceToCollect; ++x)
+            {
+                distanceToCell = _cellManager.CalculateDistanceBetweenCells(new Position(x, station.Position.Y), currentRobot.Position);
+                if (distanceToCell < minDistance)
+                {
+                    minDistance = distanceToCell;
+                    bestPosition.X = x;
+                    bestPosition.Y = station.Position.Y;
+                }
+            }
+
+            //Check below triangle
+            for (int y = station.Position.Y - maxDistanceToCollect, count = 0; y < station.Position.Y; ++y, ++count)
+            {
+                for (int x = station.Position.X - count; x <= station.Position.X + count; ++x)
+                {
+                    distanceToCell = _cellManager.CalculateDistanceBetweenCells(new Position(x, y), currentRobot.Position);
+                    if (distanceToCell < minDistance)
+                    {
+                        minDistance = distanceToCell;
+                        bestPosition.X = x;
+                        bestPosition.Y = y;
+                    }
+                }
+            }
+
+            return bestPosition;
         }
 
         public Position FindGroupOfStations(Map map, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot)
