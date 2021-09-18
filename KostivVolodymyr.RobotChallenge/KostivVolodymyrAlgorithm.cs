@@ -22,7 +22,7 @@ namespace KostivVolodymyr.RobotChallenge
         const int MaxRoundToJumpToStation = 25;
         const int MaxNumOfRobots = 100;
 
-        private Dictionary<Robot.Common.Robot, EnergyStation> robotsWithTargetStations;
+        private Dictionary<Robot.Common.Robot, EnergyStation> robotsWithTheirStations;
 
         public int RoundCounter { get; set; }
         public int RobotCounter { get; set; }
@@ -31,7 +31,7 @@ namespace KostivVolodymyr.RobotChallenge
         {
             Logger.OnLogRound += Logger_OnLogRound;
             RobotCounter = 10;
-            robotsWithTargetStations = new Dictionary<Robot.Common.Robot, EnergyStation>();
+            robotsWithTheirStations = new Dictionary<Robot.Common.Robot, EnergyStation>();
             _cellManager = ServiceManager.ServiceManager.CreateCellManager();
             _stationManager = ServiceManager.ServiceManager.CreateStationManager();
         }
@@ -44,57 +44,57 @@ namespace KostivVolodymyr.RobotChallenge
         public RobotCommand DoStep(IList<Robot.Common.Robot> robots, int robotToMoveIndex, Map map)
         {
             Robot.Common.Robot currentRobot = robots[robotToMoveIndex];
+
             if (RobotCounter < MaxNumOfRobots && currentRobot.Energy > MinParentEnergyToCreateRobot && RoundCounter < MaxRoundToCreateRobot)
             {
                 ++RobotCounter;
                 return new CreateNewRobotCommand() { NewRobotEnergy = EnergyParentGivesToSon };
             }
 
-            EnergyStation bestTarget = _stationManager.FindNearestFreeStation(map, robots, currentRobot);
-            Position bestTargetPosition = _stationManager.FindBestPositionNearStation(bestTarget, robots, currentRobot);
-            int distanceToBestTarget = _cellManager.CalculateDistanceBetweenCells(bestTargetPosition, currentRobot.Position);
-
-            if (distanceToBestTarget < MaxDistanceToCollect || currentRobot.Energy == 0)
+            robotsWithTheirStations.TryGetValue(currentRobot, out EnergyStation possibleTarget);
+            if (possibleTarget != null && _stationManager.RobotInStationRange(possibleTarget, currentRobot))
             {
                 return new CollectEnergyCommand();
             }
 
-            if (distanceToBestTarget <= currentRobot.Energy)
+            EnergyStation nearestStation = _stationManager.FindNearestStation(map, robots, currentRobot);
+            if (_stationManager.StationIsFree(nearestStation, robots, currentRobot) ||
+                _stationManager.StationIsOccupiedOnlyByOneMyRobot(nearestStation, robots, currentRobot))
             {
-                return new MoveCommand() { NewPosition = bestTargetPosition };
-            }
-            else 
-            {
-                EnergyStation target = bestTarget;
-                robotsWithTargetStations.TryGetValue(currentRobot, out EnergyStation resVal);
-                if (resVal != null)
+                robotsWithTheirStations[currentRobot] = nearestStation;
+
+                if (_stationManager.RobotInStationRange(nearestStation, currentRobot))
                 {
-                    target = robotsWithTargetStations[currentRobot];
-                }
-                else
-                {
-                    target = _stationManager.FindNonTargetedFreeStation(map, robots, currentRobot, robotsWithTargetStations);
-                    if (target != null)
-                    {
-                        robotsWithTargetStations[currentRobot] = target;
-                    }
-                    else
-                    {
-                        return new MoveCommand() { NewPosition = new Position(currentRobot.Position.X + 1, currentRobot.Position.Y + 1) };
-                    }
+                    return new CollectEnergyCommand();
                 }
 
-                Position targetPosition = _stationManager.FindBestPositionNearStation(bestTarget, robots, currentRobot);
-                int distanceToTarget = _cellManager.CalculateDistanceBetweenCells(bestTargetPosition, currentRobot.Position);
+                Position bestPositionToNearestStation = _stationManager.FindBestPositionNearStation(nearestStation, robots, currentRobot);
 
-                int xDist = target.Position.X < currentRobot.Position.X ? -1 : 1;
-                xDist = target.Position.X == currentRobot.Position.X ? 0 : xDist;
+                if (currentRobot.Energy >= _cellManager.CalculateDistanceBetweenCells(bestPositionToNearestStation, currentRobot.Position))
+                {
+                    robotsWithTheirStations[currentRobot] = nearestStation;
 
-                int yDist = target.Position.Y < currentRobot.Position.Y ? -1 : 1;
-                yDist = target.Position.Y == currentRobot.Position.Y ? 0 : yDist;
-
-                return new MoveCommand() { NewPosition = new Position(currentRobot.Position.X + xDist, currentRobot.Position.Y + yDist) };
+                    return new MoveCommand() { NewPosition = bestPositionToNearestStation };
+                }
             }
+
+            EnergyStation targetStation = _stationManager.FindNearestFreeStation(map, robots, currentRobot);
+            Position targetPosition = _stationManager.FindBestPositionNearStation(targetStation, robots, currentRobot);
+
+            if (currentRobot.Energy >= _cellManager.CalculateDistanceBetweenCells(targetPosition, currentRobot.Position))
+            {
+                robotsWithTheirStations[currentRobot] = nearestStation;
+
+                return new MoveCommand() { NewPosition = targetPosition };
+            }
+
+            int xDist = targetPosition.X < currentRobot.Position.X ? -1 : 1;
+            xDist = targetPosition.X == currentRobot.Position.X ? 0 : xDist;
+
+            int yDist = targetPosition.Y < currentRobot.Position.Y ? -1 : 1;
+            yDist = targetPosition.Y == currentRobot.Position.Y ? 0 : yDist;
+
+            return new MoveCommand() { NewPosition = new Position(currentRobot.Position.X + xDist, currentRobot.Position.Y + yDist) };
         }
     }
 }

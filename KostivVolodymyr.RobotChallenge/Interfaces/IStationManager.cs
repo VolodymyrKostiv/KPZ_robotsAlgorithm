@@ -13,15 +13,15 @@ namespace KostivVolodymyr.RobotChallenge.Interfaces
 
         EnergyStation FindNearestStation(Map map, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot);
 
-        EnergyStation FindFreeStation(Map map, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot);
-
         EnergyStation FindNonTargetedFreeStation(Map map, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot, Dictionary<Robot.Common.Robot, EnergyStation> robotsWithTargets);
-
-        Position FindGroupOfStations(Map map, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot);
 
         Position FindBestPositionNearStation(EnergyStation station, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot);
 
         IEnumerable<Robot.Common.Robot> CheckTerritoryNearStation(EnergyStation station, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot);
+
+        bool StationIsOccupiedOnlyByOneMyRobot(EnergyStation station, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot);
+
+        bool RobotInStationRange(EnergyStation station, Robot.Common.Robot currentRobot);
 
         bool StationIsFree(EnergyStation station, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot);
 

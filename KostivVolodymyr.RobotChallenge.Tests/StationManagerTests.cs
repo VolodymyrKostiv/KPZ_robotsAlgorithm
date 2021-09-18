@@ -203,22 +203,6 @@ namespace KostivVolodymyr.RobotChallenge.Tests
             Assert.IsInstanceOfType(result, typeof(EnergyStation));
         }
 
-        [TestMethod]
-        public void FindGroupOfStations_ThrowNotImplementedException()
-        {
-            //Assert
-            Assert.ThrowsException<NotImplementedException>(() =>
-                _stationManager.FindGroupOfStations(It.IsAny<Map>(), GetTestRobotsForOcupation(), It.IsAny<Robot.Common.Robot>()));
-        }
-
-        [TestMethod]
-        public void StationIsFree_ThrowNotImplementedException()
-        {
-            //Assert
-            Assert.ThrowsException<NotImplementedException>(() =>
-                _stationManager.FindGroupOfStations(It.IsAny<Map>(), GetTestRobotsForOcupation(), It.IsAny<Robot.Common.Robot>()));
-        }
-
         private static IEnumerable<Robot.Common.Robot> GetTestRobotsForOcupation()
         {
             return new List<Robot.Common.Robot>
