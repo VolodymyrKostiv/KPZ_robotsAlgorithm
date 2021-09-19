@@ -83,8 +83,10 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
                 }
 
                 EnergyStation nearestStation = nearbyStations.OrderBy(p => _cellManager.CalculateDistanceBetweenCells(currentRobot.Position, p.Position)).First();
+                
                 return nearestStation;
             }
+
             return null;
         }
 

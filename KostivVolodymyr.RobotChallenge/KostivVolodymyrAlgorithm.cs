@@ -19,6 +19,9 @@ namespace KostivVolodymyr.RobotChallenge
 
         Dictionary<int, EnergyStation> robotsWithTargets;
 
+        delegate bool CreateHandler(Robot.Common.Robot robot);
+        event CreateHandler Create;
+
         public int RoundCounter { get; set; }
         public int RobotCounter { get; set; }
 
@@ -29,6 +32,8 @@ namespace KostivVolodymyr.RobotChallenge
             RobotCounter = 10;
 
             robotsWithTargets = new Dictionary<int, EnergyStation>();
+
+            Create = CanCreateRobot;
 
             _cellManager = ServiceManager.ServiceManager.CreateCellManager();
             _stationManager = ServiceManager.ServiceManager.CreateStationManager();
@@ -48,7 +53,7 @@ namespace KostivVolodymyr.RobotChallenge
         {
             Robot.Common.Robot currentRobot = robots[robotToMoveIndex];
 
-            if (CanCreateRobot(currentRobot))
+            if (Create?.Invoke(currentRobot) ?? false)
             {
                 ++RobotCounter;
                 return new CreateNewRobotCommand() { NewRobotEnergy = EnergyParentGivesToSon };

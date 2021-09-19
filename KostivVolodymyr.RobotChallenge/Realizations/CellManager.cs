@@ -42,7 +42,9 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
                     }
                 }
             }
+
             robotOnCell = null;
+
             return true;
         }
         public bool EnemyRobotIsOnCell(Position targetCell, IEnumerable<Robot.Common.Robot> robots)
@@ -57,6 +59,7 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
                     return robot.OwnerName != "Kostiv Volodymyr";
                 }
             }
+
             return false;
         }
 
@@ -72,6 +75,7 @@ namespace KostivVolodymyr.RobotChallenge.Realizations
                     return robot.OwnerName == "Kostiv Volodymyr";
                 }
             }
+
             return false;
         }
     }
