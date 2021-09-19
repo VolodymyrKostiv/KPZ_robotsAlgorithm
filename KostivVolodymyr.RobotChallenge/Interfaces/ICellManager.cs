@@ -11,6 +11,8 @@ namespace KostivVolodymyr.RobotChallenge.Interfaces
     {
         int CalculateDistanceBetweenCells(Position p1, Position p2);
 
+        bool RobotCanGoToCell(Robot.Common.Robot robot, Position target);
+
         bool CellIsFree(Position targetCell, IEnumerable<Robot.Common.Robot> robots, Robot.Common.Robot currentRobot, out Robot.Common.Robot robotOnCell);
 
         bool MyRobotIsOnCell(Position targetCell, IEnumerable<Robot.Common.Robot> robots);
